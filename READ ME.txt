@@ -1,0 +1,15 @@
+Good Morning,
+
+I'm Gabriel Rodrigues Vergari.
+
+This Project was done in Unreal Engine 4.27
+
+We have 2 folders here. 
+Evolution_Server is a server, as i didn't manage to connect with your server,
+i did mine to test the connection of the websocket. 
+Evolution_Build is the build of the game.
+
+Any questions, send me an email at gabrielvergari@hotmail.com.
+
+Thank you!
+
