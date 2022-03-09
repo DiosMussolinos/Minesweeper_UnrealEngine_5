@@ -4,6 +4,7 @@
 #include "CameraControl.h"
 #include "Block.h"
 #include "WebSocketInstance.h"
+#include "Kismet/GameplayStatics.h"
 
 ACameraControl::ACameraControl()
 {
@@ -11,6 +12,13 @@ ACameraControl::ACameraControl()
 }
 
 void ACameraControl::BeginPlay()
+{
+	CreateBlocks();
+
+	CallBlockMineVer();
+}
+
+void ACameraControl::CreateBlocks()
 {
 	#pragma region Create Blocks
 	for (int x = 0; x < xLenght; x++)
@@ -27,6 +35,23 @@ void ACameraControl::BeginPlay()
 	}
 	#pragma endregion
 }
+
+
+void ACameraControl::CallBlockMineVer()
+{
+	#pragma region Call the Function to Calculate the amount of mine near every Cube
+	TArray<AActor*> TotalBlocks;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABlock::StaticClass(), TotalBlocks);
+
+	for (int i = 0; i < TotalBlocks.Num(); i++)
+	{
+		ABlock* blockCast = Cast<ABlock>(TotalBlocks[i]);
+
+		blockCast->CalculateMines(TotalBlocks);
+	}
+	#pragma endregion
+}
+
 
 //Inputs
 void ACameraControl::SetupInputComponent()
@@ -46,10 +71,6 @@ void ACameraControl::SetupInputComponent()
 
 void ACameraControl::LeftClick()
 {
-	//Raycast From camera to mouse Pos in world
-	//if - Pointer Not Null
-	//if - actor.Tag Block
-	//Block->Verify()
 	
 	if (cameraActor)
 	{
@@ -66,30 +87,35 @@ void ACameraControl::LeftClick()
 				{
 					ABlock* block = Cast<ABlock>(ActorHit);
 
-					if (block->mine)
+					if (block->mine && !block->marked)
 					{
 						state = 2;
 						block->showed = true;
 					}
 					else
 					{
-						if ((!block->showed) && (!block->marked))
+						if (!block->showed)
 						{
-							//Local Change
-							block->ChangePosition();
-							block->Verification();
-							block->showed = true;
-
-							//WebSocket
-							UWebSocketInstance* GameInst = Cast<UWebSocketInstance>(GetGameInstance());
-							
-							if (GameInst)
+							if (!block->marked)
 							{
-								if (GameInst->webSocket->IsConnected())
+								//Local Change
+								block->ChangePosition();
+								block->Verification();
+								block->showed = true;
+
+								#pragma region Web Socket Related
+								//WebSocket
+								UWebSocketInstance* GameInst = Cast<UWebSocketInstance>(GetGameInstance());
+
+								if (GameInst)
 								{
-									FString message = "Open <"+ FString::FromInt(block->xPos) +"> <"+ FString::FromInt(block->yPos) +">";
-									GameInst->webSocket->Send(message);
+									if (GameInst->webSocket->IsConnected())
+									{
+										FString message = "Open <" + FString::FromInt(block->xPos) + "> <" + FString::FromInt(block->yPos) + ">";
+										GameInst->webSocket->Send(message);
+									}
 								}
+								#pragma endregion
 							}
 						}
 					}
@@ -98,6 +124,7 @@ void ACameraControl::LeftClick()
 		}
 	}
 }
+
 
 void ACameraControl::RightClick()
 {
@@ -124,8 +151,8 @@ void ACameraControl::RightClick()
 			}
 		}
 	}
-
 }
+
 
 void ACameraControl::Map()
 {
@@ -143,6 +170,7 @@ void ACameraControl::Map()
 
 }
 
+
 void ACameraControl::Help()
 {
 	//Request Help WebSocket
@@ -157,4 +185,3 @@ void ACameraControl::Help()
 		}
 	}
 }
-

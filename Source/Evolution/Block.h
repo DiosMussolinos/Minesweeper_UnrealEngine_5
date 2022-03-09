@@ -15,20 +15,22 @@ public:
 	// Sets default values for this actor's properties
 	ABlock();
 
+	//Calculate Mines At The start
+	void CalculateMines(TArray<AActor*> Blocks);
+
 	//Verify is it is Bomb or clean
 	void Verification();
 
 	//Verify is it is Bomb or clean
 	void ChadVerification();
 
-	//Mark
-	void Mark();
+	void MineRandomization();
 
 	//Clicked: "Destroy", Warn About Bomb
 	void ChangePosition();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game") bool mine;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game") int nearMine = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game") bool mine ;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game") int nearMine;
 	UPROPERTY(EditAnywhere, Category = "Game") int xPos;
 	UPROPERTY(EditAnywhere, Category = "Game") int yPos;
 
@@ -36,16 +38,12 @@ public:
 
 	UPROPERTY(BlueprintReadOnly) bool showed = false;
 	UPROPERTY(BlueprintReadOnly) bool marked = false;
-	TArray<AActor*> FoundBlocks;
+	TArray<AActor*> TotalBlocks;
 
+	int count = 0;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-private:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 
 };

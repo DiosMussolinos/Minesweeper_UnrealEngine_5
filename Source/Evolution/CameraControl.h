@@ -25,7 +25,13 @@ protected:
 	// Called in the First Frame.
 	virtual void BeginPlay() override;
 
-	//////Inputs
+	//Create Blocks
+	void CreateBlocks();
+
+	//Call To calculate all Mines
+	void CallBlockMineVer();
+
+	//Inputs
 	virtual void SetupInputComponent() override;
 
 	//Left Click

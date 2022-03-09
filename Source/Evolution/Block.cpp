@@ -17,36 +17,59 @@ void ABlock::BeginPlay()
 {
 	Super::BeginPlay();
 
+	MineRandomization();
+}
+
+void ABlock::MineRandomization()
+{
+	#pragma region Randomize if a cube is also a mine - 30% for now
 	int random = FMath::RandRange(0, 10);
-	
-	if (random < 4)
+
+	if (random < 3)
 	{
 		mine = true;
 	}
 
 	SelfReference = this;
+	#pragma endregion
 }
 
-// Called every frame
-void ABlock::Tick(float DeltaTime)
+void ABlock::CalculateMines(TArray<AActor*> Blocks)
 {
-	Super::Tick(DeltaTime);
+	#pragma region Calculate All Mines Around Cubes
 
-}
+	TotalBlocks = Blocks;
 
-void ABlock::ChangePosition()
-{
-	FVector newPos = FVector(GetActorLocation().X, GetActorLocation().Y, -100);
-	SetActorLocation(newPos);
+	for (int i = 0; i < TotalBlocks.Num(); i++)
+	{
+		ABlock* blockCast = Cast<ABlock>(TotalBlocks[i]);
+
+		if (blockCast->SelfReference != SelfReference)
+		{
+			int xDif = xPos - blockCast->xPos;
+			int yDif = yPos - blockCast->yPos;
+
+			if (xDif == 1 || xDif == -1 || xDif == 0)
+			{
+				if (yDif == 1 || yDif == -1 || yDif == 0)
+				{
+					if (blockCast->mine && !mine)
+					{
+						nearMine++;
+					}
+				}
+			}
+		}
+	}
+
+	#pragma endregion
 }
 
 void ABlock::Verification()
 {
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABlock::StaticClass(), FoundBlocks);
-
-	for (int i = 0; i < FoundBlocks.Num(); i++)
+	for (int i = 0; i < TotalBlocks.Num(); i++)
 	{
-		ABlock* blockCast = Cast<ABlock>(FoundBlocks[i]);
+		ABlock* blockCast = Cast<ABlock>(TotalBlocks[i]);
  
 		int xDif = xPos - blockCast->xPos;
 		int yDif = yPos - blockCast->yPos;
@@ -66,25 +89,24 @@ void ABlock::Verification()
 							blockCast->showed = true;
 						}
 					}
-					else
-					{
-						nearMine++;
-					}
 				}
 			}
 		}
 	}
 }
 
+void ABlock::ChangePosition()
+{
+	FVector newPos = FVector(GetActorLocation().X, GetActorLocation().Y, -100);
+	SetActorLocation(newPos);
+}
 
 //ChadVerification is to make Verification NOT StackOverflow
 void ABlock::ChadVerification()
 {
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABlock::StaticClass(), FoundBlocks);
-
-	for (int i = 0; i < FoundBlocks.Num(); i++)
+	for (int i = 0; i < TotalBlocks.Num(); i++)
 	{
-		ABlock* blockCast = Cast<ABlock>(FoundBlocks[i]);
+		ABlock* blockCast = Cast<ABlock>(TotalBlocks[i]);
 
 		int xDif = xPos - blockCast->xPos;
 		int yDif = yPos - blockCast->yPos;
@@ -102,10 +124,6 @@ void ABlock::ChadVerification()
 							blockCast->ChangePosition();
 							blockCast->showed = true;
 						}
-					}
-					else
-					{
-						nearMine++;
 					}
 				}
 			}
